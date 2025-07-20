@@ -23,7 +23,7 @@ class Sentiment140Item(models.Model):
         #db_comment="the polarity of the tweet (0 = negative, 2 = neutral, 4 = positive)"
     )
     tweet_id = models.IntegerField(
-        unique=True,
+        #unique=True,
         #db_comment="The id of the tweet ( 2087)"
     )
     date = models.DateTimeField(
