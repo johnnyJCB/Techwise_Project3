@@ -1,0 +1,6 @@
+# General
+.venv
+__pycache__
+
+# Django
+db.sqlite3
