@@ -5,7 +5,7 @@
 from django.contrib.auth.models import Group, User
 from rest_framework import permissions, viewsets
 
-from backend.vibechecker.serializers import GroupSerializer, UserSerializer
+from vibechecker.serializers import GroupSerializer, UserSerializer
 
 # Views
 class UserViewSet(viewsets.ModelViewSet):

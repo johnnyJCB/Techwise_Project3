@@ -23,7 +23,7 @@ Including another URLconf
 from django.urls import include, path
 from rest_framework import routers
 
-from backend.vibechecker import views
+from vibechecker import views
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
