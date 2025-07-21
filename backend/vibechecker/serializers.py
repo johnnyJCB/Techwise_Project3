@@ -1,20 +1,12 @@
-# Initially from: https://www.django-rest-framework.org/tutorial/quickstart/
-# Will rework to fit our needs later on.
-
 # Imports
 # - Django and REST Framework Imports -
-from django.contrib.auth.models import Group, User
 from rest_framework import serializers
+from vibechecker.models import Sentiment140Item
 
 # Classes
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    """TODO"""
+class Sentiment140ItemSerializer(serializers.ModelSerializer):
+    """A Django REST framework Model Serializer, which generates upon the 'Sentiment140Item' model."""
     class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'groups']
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    """TODO"""
-    class Meta:
-        model = Group
-        fields = ['url', 'name']
+        """Defines the metadata and what fields the Model Serializer should create."""
+        model = Sentiment140Item
+        fields = ["target", "tweet_id", "date", "flag", "user", "text"]
