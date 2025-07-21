@@ -1,5 +1,5 @@
 # Imports
-# - Django and REST Framework Imports -
+# -Django and REST Framework Imports-
 from rest_framework import serializers
 from vibechecker.models import Sentiment140Item
 
