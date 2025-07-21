@@ -1,0 +1,14 @@
+#root {
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+
+
+/* === Home Page === */
+
+.home {
+  width: max-content;
+}
