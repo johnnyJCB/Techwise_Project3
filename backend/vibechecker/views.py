@@ -10,7 +10,7 @@ from vibechecker.serializers import Sentiment140ItemSerializer
 
 # Views
 @api_view(['GET', 'POST'])
-def sentiment_140_item_list(request):
+def sentiment_140_item_list(request, format=None):
     """List all items in the Sentiment 140 dataset, or create one."""
     # Gets all items in the Dataset and returns a JSON serialized file back.
     # May be a bit much, considering we have 1,600,000 items. So be careful.
@@ -32,7 +32,7 @@ def sentiment_140_item_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["GET", "PUT", "DELETE"])
-def sentiment_140_item_detail(request, id):
+def sentiment_140_item_detail(request, id, format=None):
     """Handle requests that interact with only one item in the Database. Requires an ID.
     
     :param request: The request to interact with.
