@@ -2,7 +2,11 @@
 # -Django and REST Framework Imports-
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
+
+# -App Imports-
 from vibechecker.models import Sentiment140Item
 from vibechecker.serializers import Sentiment140ItemSerializer
 
