@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, href } from 'react-router-dom'
 import './App.css'
 import Home from './pages/HomePage'
@@ -7,6 +7,7 @@ import Account from './pages/AccountPage';
 import Aurora from './components/Aurora'
 import { Avatar } from '@mui/material';
 import FlowingMenu from './components/FlowingMenu'
+import axios from "axios";
 
 function App() {
   const items = [
@@ -41,89 +42,60 @@ function App() {
     };
   }, [menuOpen]);
 
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    axios
+    .get("http://127.0.0.1:8000/health/")
+      .then((response) => {
+        setMessage(response.data.message);
+      })
+      .catch((error) => {
+        console.error("Axios error:", error);
+      });
+  }, []);
+
   return (
     <Router>
-      <div style={{ position: 'relative', minHeight: '100vh' }}>
-        <div style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 0 }}>
+      <div className="app-container">
+        <div className="aurora-background">
           <Aurora
-            colorStops={["#7F00FF", "#E100FF", "#00C9FF", "#92FE9D"]}
-            blend={0.6}
-            amplitude={1.2}
-            speed={0.7}
+            colorStops={["#667eea", "#764ba2", "#667eea", "#764ba2"]}
+            blend={0.3}
+            amplitude={0.8}
+            speed={0.5}
           />
         </div>
-        <nav
-          style={{
-            position: 'relative',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 'fit-content',
-            padding: '100px',
-            zIndex: 10,
-            display: 'flex',
-            gap: '16px',
-          }}
-        >
+        <nav className="main-nav">
           {items.map((item, idx) => (
             <a
               key={item.href}
               href={item.href}
-              style={{
-                textDecoration: 'none',
-                color: initialActiveIndex === idx ? '#7F00FF' : '#222',
-                fontWeight: initialActiveIndex === idx ? 'bold' : 'normal',
-                background: 'rgba(0, 0, 0, 0.7)',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '8px 18px',
-                cursor: 'pointer',
-                boxShadow: initialActiveIndex === idx ? '0 2px 8px #7F00FF33' : 'none',
-                transition: 'all 0.2s',
-              }}
+              className={`nav-link ${initialActiveIndex === idx ? 'active' : ''}`}
             >
               {item.label}
             </a>
           ))}
         </nav>
-        <div style={{
-          position: 'absolute',
-          top: '70px',
-          right: '40px',
-          padding: '10px',
-          zIndex: 10,
-        }}>
+        <div className="user-menu-container">
           <div
             ref={menuRef}
-            style={{ position: 'relative', display: 'inline-block', }}
+            className="user-menu-wrapper"
           >
             <Avatar
-              sx={{ width: 50, height: 50, cursor: 'pointer', boxShadow: '0 4px 10px rgb(127, 0, 255)', }}
+              className="user-avatar"
               onClick={() => setMenuOpen((open) => !open)}
             >
-              A
+              AJ
             </Avatar>
             {menuOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '60px',
-                  right: -35,
-                  background: 'rgba(0, 0, 0, 0.95)',
-                  boxShadow: '0 2px 8px rgb(127, 0, 255)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  zIndex: 20,
-                  height: '100px',
-                  width: '100px',
-                }}
-              >
+              <div className="dropdown-menu">
                 <FlowingMenu items={MenuItems} />
               </div>
             )}
           </div>
         </div>
-        <div style={{ position: 'relative', zIndex: 10 }}>
+        <div className="page-content">
           <Routes>
             {items.map(item => (
               <Route
@@ -139,6 +111,7 @@ function App() {
             <Route path="/account" element={<Account />} />
           </Routes>
         </div>
+        <div className="server-status">{message ? message : "Loading..."}</div>
       </div>
     </Router>
   )
