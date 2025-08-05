@@ -1,37 +1,61 @@
 import { useState } from 'react'
+import axios from 'axios'
 import '../App.css'
 
 function Home() {
     const [message, setMessage] = useState('');
     const [vibeResult, setVibeResult] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [error, setError] = useState(null);
 
-    const analyzeVibe = () => {
+    const mapResultToVibe = (mlResult) => {
+        const mapping = {
+            0: { label: 'Unprofessional', color: 'negative' },
+            1: { label: 'Somewhat Professional', color: 'neutral' },
+            2: { label: 'Highly Professional', color: 'positive' }
+        };
+        return mapping[mlResult] || { label: 'Unknown', color: 'neutral' };
+    };
+
+    const analyzeVibe = async () => {
         if (!message.trim()) return;
         
         setIsAnalyzing(true);
-        // Simulate API call with timeout
-        setTimeout(() => {
-            const vibes = ['Positive', 'Neutral', 'Negative'];
-            const randomVibe = vibes[Math.floor(Math.random() * vibes.length)];
-            const confidence = Math.floor(Math.random() * 30) + 70; // 70-99%
+        setError(null);
+        
+        try {
+            const response = await axios.post('http://localhost:8000/api/v1.0/sentiment_model/', {
+                query: message
+            });
+            
+            if (response.data.error) {
+                throw new Error(response.data.message);
+            }
+            
+            const vibeInfo = mapResultToVibe(response.data.data);
             
             setVibeResult({
-                vibe: randomVibe,
-                confidence: confidence,
-                analysis: getAnalysisText(randomVibe)
+                vibe: vibeInfo.label,
+                color: vibeInfo.color,
+                confidence: 85, // Default confidence since API doesn't provide it
+                analysis: response.data.message,
+                rawData: response.data.data
             });
+        } catch (err) {
+            console.error('API Error:', err);
+            setError(err.response?.data?.message || err.message || 'Failed to analyze message. Please try again.');
+        } finally {
             setIsAnalyzing(false);
-        }, 1500);
+        }
     };
 
     const getAnalysisText = (vibe) => {
         const analyses = {
-            'Positive': 'Your message conveys optimism and enthusiasm. Great for motivating and inspiring others!',
-            'Neutral': 'Your message maintains a balanced, professional tone. Perfect for formal communications.',
-            'Negative': 'Your message may come across as critical or pessimistic. Consider softening the tone for better reception.'
+            'Highly Professional': 'Your message conveys professionalism and clarity. Perfect for business communications!',
+            'Somewhat Professional': 'Your message maintains a balanced tone. Consider refining for more formal contexts.',
+            'Unprofessional': 'Your message may benefit from more professional language and tone.'
         };
-        return analyses[vibe];
+        return analyses[vibe] || 'Analysis complete.';
     };
 
     return (
@@ -59,10 +83,17 @@ function Home() {
                     </button>
                 </div>
                 
+                {error && (
+                    <div className="error-message">
+                        <span className="error-icon">⚠️</span>
+                        <p>{error}</p>
+                    </div>
+                )}
+                
                 {vibeResult && (
                     <div className="vibe-result">
                         <div className="result-header">
-                            <span className={`vibe-badge vibe-${vibeResult.vibe.toLowerCase()}`}>
+                            <span className={`vibe-badge vibe-${vibeResult.color}`}>
                                 {vibeResult.vibe}
                             </span>
                             <span className="confidence-score">

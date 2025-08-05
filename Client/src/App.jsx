@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, href } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useNavigate, Link } from 'react-router-dom'
 import './App.css'
 import Home from './pages/HomePage'
 import About from './pages/AboutPage'
 import Account from './pages/AccountPage';
+import Login from './pages/LoginPage';
+import Register from './pages/RegisterPage';
 import Aurora from './components/Aurora'
 import { Avatar } from '@mui/material';
 import FlowingMenu from './components/FlowingMenu'
 import axios from "axios";
 
-function App() {
+function AppContent() {
   const items = [
     { label: "Home", href: '/' },
     { label: "About", href: '/about' },
@@ -18,10 +20,41 @@ function App() {
   const path = window.location.pathname;
   const initialActiveIndex = items.findIndex(item => item.href === path);
 
-  const MenuItems = [
-    { link: '/account', text: 'Account' },
-    { link: '#', text: 'Log Out' },
-  ];
+  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
+  const navigate = useNavigate();
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setIsLoggedIn(true);
+    navigate('/');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('isLoggedIn');
+    setUser(null);
+    setIsLoggedIn(false);
+    navigate('/');
+  };
+
+  const handleMenuClose = () => {
+    setMenuOpen(false);
+  };
+
+  const getMenuItems = () => {
+    if (isLoggedIn) {
+      return [
+        { link: '/account', text: 'Account', action: () => { navigate('/account'); handleMenuClose(); } },
+        { link: '#', text: 'Log Out', action: () => { handleLogout(); handleMenuClose(); } },
+      ];
+    } else {
+      return [
+        { link: '/login', text: 'Login', action: () => { navigate('/login'); handleMenuClose(); } },
+        { link: '/register', text: 'Register', action: () => { navigate('/register'); handleMenuClose(); } },
+      ];
+    }
+  };
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   const menuRef = React.useRef(null);
@@ -55,8 +88,14 @@ function App() {
       });
   }, []);
 
+  const getAvatarInitials = () => {
+    if (user && user.name) {
+      return user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+    return 'G';
+  };
+
   return (
-    <Router>
       <div className="app-container">
         <div className="aurora-background">
           <Aurora
@@ -68,13 +107,13 @@ function App() {
         </div>
         <nav className="main-nav">
           {items.map((item, idx) => (
-            <a
+            <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className={`nav-link ${initialActiveIndex === idx ? 'active' : ''}`}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="user-menu-container">
@@ -83,14 +122,16 @@ function App() {
             className="user-menu-wrapper"
           >
             <Avatar
-              className="user-avatar"
+              className='user-avatar'
               onClick={() => setMenuOpen((open) => !open)}
             >
-              AJ
+              {getAvatarInitials()}
             </Avatar>
             {menuOpen && (
-              <div className="dropdown-menu">
-                <FlowingMenu items={MenuItems} />
+              <div className='dropdown-menu'>
+                <FlowingMenu 
+                  items={getMenuItems()} 
+                />
               </div>
             )}
           </div>
@@ -108,13 +149,22 @@ function App() {
                 }
               />
             ))}
-            <Route path="/account" element={<Account />} />
+            <Route path='/account' element={<Account user={user} />} />
+            <Route path='/login' element={<Login onLogin={handleLogin} />} />
+            <Route path='/register' element={<Register onLogin={handleLogin} />} />
           </Routes>
         </div>
         <div className="server-status">{message ? message : "Loading..."}</div>
       </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
-  )
+  );
 }
 
 export default App

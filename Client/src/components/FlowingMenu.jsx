@@ -1,5 +1,6 @@
 import React from 'react';
 import { gsap } from 'gsap';
+import { useNavigate } from 'react-router-dom';
 
 import './FlowingMenu.css';
 
@@ -15,10 +16,11 @@ function FlowingMenu({ items = [] }) {
   );
 }
 
-function MenuItem({ link, text, image }) {
+function MenuItem({ link, text, image, action }) {
   const itemRef = React.useRef(null);
   const marqueeRef = React.useRef(null);
   const marqueeInnerRef = React.useRef(null);
+  const navigate = useNavigate();
 
   const animationDefaults = { duration: 0.6, ease: 'expo' };
 
@@ -76,6 +78,14 @@ function MenuItem({ link, text, image }) {
         href={link}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onClick={(e) => {
+          e.preventDefault();
+          if (action) {
+            action();
+          } else {
+            navigate(link);
+          }
+        }}
       >
         {text}
       </a>
