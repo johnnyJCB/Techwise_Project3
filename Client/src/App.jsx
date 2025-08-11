@@ -77,16 +77,23 @@ function AppContent() {
 
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    axios
-    .get("http://127.0.0.1:8000/health/")
-      .then((response) => {
-        setMessage(response.data.message);
-      })
-      .catch((error) => {
-        console.error("Axios error:", error);
-      });
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //   .get("http://127.0.0.1:8000/health/")
+  //     .then((response) => {
+  //       setMessage(response.data.message);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Axios error:", error);
+  //     });
+  // }, []);
+
+  const getAvatarInitials = () => {
+    if (user && user.name) {
+      return user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+    return 'G';
+  };
 
   const getAvatarInitials = () => {
     if (user && user.name) {
