@@ -1,0 +1,3 @@
+[submodule "backend/TechwiseCapstone_Sentiment_Analysis"]
+	path = backend/TechwiseCapstone_Sentiment_Analysis
+	url = git@github.com:BazeJared/TechwiseCapstone_Sentiment_Analysis.git

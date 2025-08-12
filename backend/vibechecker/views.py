@@ -11,6 +11,24 @@ from vibechecker.models import Sentiment140Item
 from vibechecker.serializers import Sentiment140ItemSerializer, UserSerializer, GroupSerializer
 from vibechecker.permissions import IsOwnerOrReadOnly
 
+# -Normal Imports-
+from pathlib import Path
+from openai import OpenAI
+from .local_settings import API_KEY
+import re
+
+# Constants
+READ_DIRECTORY = Path("./TechwiseCapstone_Sentiment_Analysis").resolve()
+MODEL_FILE = READ_DIRECTORY / "model.pkl"
+VECTORIZER_FILE = READ_DIRECTORY / "vectorizer.pkl"
+LABELS = {
+    0: "Not professional enough",
+    1: "Somewhat professional",
+    2: "Highly professional"
+}
+QUERY_KEY = "query"
+
+# Classes
 class Sentiment140ItemList(APIView):
 
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -77,6 +95,65 @@ class Sentiment140DetailList(APIView):
         item = self.get_object(id)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class Sentiment140ModelList(APIView):
+    """Returns items from the Sentiment 140 Model."""
+    def clean_text(self, text):
+        """Clean a piece of text. Originally implemented by TechwiseCapstone_Sentiment_Analysis submodule."""
+        text = re.sub(r"http\S+", "", text)
+        text = re.sub(r"[^a-zA-Z0-9 .,!?\'\n]", "", text)
+        return text.lower().strip()
+
+    def get_prompt(self, query):
+        """Get a prompt from ChatGPT."""
+        client = OpenAI(api_key=API_KEY)
+        response = client.responses.create(
+            model=GPT_MODEL,
+            input=query
+        )
+
+        return response
+
+    def post(self, request, format=None) -> Response:
+        """POST a prompt into the model and process its response."""
+        # If the model or vectorizer is not present, return a 500 error.
+        if not MODEL_FILE.is_file() and not VECTORIZER_FILE.is_file():
+            error_response = {
+                'message': "Submodule/Read Directory does not exist! Please ensure you have done 'git clone <repo> --recursive' or specified a valid read directory.",
+                'error': True,
+                'code': 500
+            }
+            return Response(error_response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        model_query = request.data.get(QUERY_KEY, "")
+
+        # If Query is not invalid.
+        if model_query:
+            """model = joblib.load(MODEL_FILE)
+            vectorizer = joblib.load(VECTORIZER_FILE)
+
+            # Predicts a score from the model query.
+            cleaned = self.clean_text(model_query)
+            vect = vectorizer.transform([cleaned])
+            pred = model.predict(vect)[0]
+
+            # Forms the model response from the predicted score.
+            model_response = {
+                'message': f'{LABELS[pred]}', 
+                'data': pred,
+                'error': False, 
+                'code': 200
+            }"""
+
+            model_response = self.get_prompt(model_query)
+            return Response(model_response)
+        # Otherwise return a 400 error.
+        else:
+            error_response = {
+                'message': '❌ ERROR: No query, or an invalid query, was placed in body.',
+                'error': True,
+                'code': 400
+            }
+            return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
 class UserViewSet(viewsets.ModelViewSet):
 
