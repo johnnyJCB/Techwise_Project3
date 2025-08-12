@@ -6,8 +6,8 @@ from .models import Sentiment140Item
 # Register your custom models
 @admin.register(Sentiment140Item)
 class Sentiment140ItemAdmin(admin.ModelAdmin):
-    list_display = ['user', 'text', 'target', 'date', 'owner']
-    list_filter = ['target', 'date', 'owner']
+    list_display = ['user', 'text', 'target', 'date']
+    list_filter = ['target', 'date']
     search_fields = ['user', 'text']
     readonly_fields = ['date']
     
@@ -15,7 +15,7 @@ class Sentiment140ItemAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if request.user.is_superuser:
             return ['date']
-        return ['date', 'owner']
+        return ['date']
 
 # Customize User admin (optional)
 class CustomUserAdmin(BaseUserAdmin):

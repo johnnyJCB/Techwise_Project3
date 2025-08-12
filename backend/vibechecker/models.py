@@ -4,8 +4,6 @@ from django.utils.translation import gettext_lazy as _
 
 # Classes
 class Sentiment140Item(models.Model):
-
-
     """
         Kaggle Dataset "Sentiment140 dataset with 1.6 million tweets": https://www.kaggle.com/datasets/kazanova/sentiment140?resource=download
         
@@ -20,11 +18,10 @@ class Sentiment140Item(models.Model):
         POSITIVE = 4, _("positive")
 
     # Members
-
-    owner = models.ForeignKey(
+    """owner = models.ForeignKey(
         'auth.User', related_name='sentiment_items', on_delete=models.CASCADE,
         #db_comment="user that created the sentiment item"
-    )
+    )"""
 
     target = models.IntegerField(
         choices=Target,

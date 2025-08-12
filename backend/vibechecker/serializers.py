@@ -11,8 +11,7 @@ class Sentiment140ItemSerializer(serializers.ModelSerializer):
     class Meta:
         """Defines the metadata and what fields the Model Serializer should create."""
         model = Sentiment140Item
-        fields = ["target", "tweet_id", "date", "flag", "user", "text", "owner"]
-        owner = serializers.ReadOnlyField(source='owner.username')
+        fields = ["target", "tweet_id", "date", "flag", "user", "text"]
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
