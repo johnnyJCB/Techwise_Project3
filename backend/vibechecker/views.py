@@ -11,7 +11,8 @@ from vibechecker.serializers import Sentiment140ItemSerializer
 
 # -Normal Imports-
 from pathlib import Path
-import joblib
+from openai import OpenAI
+from .local_settings import API_KEY
 import re
 
 # Constants
@@ -91,6 +92,16 @@ class Sentiment140ModelList(APIView):
         text = re.sub(r"[^a-zA-Z0-9 .,!?\'\n]", "", text)
         return text.lower().strip()
 
+    def get_prompt(self, query):
+        """Get a prompt from ChatGPT."""
+        client = OpenAI(api_key=API_KEY)
+        response = client.responses.create(
+            model=GPT_MODEL,
+            input=query
+        )
+
+        return response
+
     def post(self, request, format=None) -> Response:
         """POST a prompt into the model and process its response."""
         # If the model or vectorizer is not present, return a 500 error.
@@ -105,7 +116,7 @@ class Sentiment140ModelList(APIView):
 
         # If Query is not invalid.
         if model_query:
-            model = joblib.load(MODEL_FILE)
+            """model = joblib.load(MODEL_FILE)
             vectorizer = joblib.load(VECTORIZER_FILE)
 
             # Predicts a score from the model query.
@@ -119,7 +130,9 @@ class Sentiment140ModelList(APIView):
                 'data': pred,
                 'error': False, 
                 'code': 200
-            }
+            }"""
+
+            model_response = self.get_prompt(model_query)
             return Response(model_response)
         # Otherwise return a 400 error.
         else:
