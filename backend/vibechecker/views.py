@@ -28,6 +28,14 @@ LABELS = {
 }
 QUERY_KEY = "query"
 
+# -Constants for modeling-
+MODEL_MOTIVATION = "Do a sentiment analysis of a given message, with these stipulations: "
+MODEL_CONSTRAINTS = """
+1. Return responses in the specified format: '<Sentiment tone, only using words: Negative, Positive, or Neutral> <Certainty percentage, like 100%, 48%, etc.>. Analysis: <Reasoning for result>. Why: <Reasoning for certainty>.'
+"""
+MODEL_INSTRUCTIONS = MODEL_MOTIVATION + MODEL_CONSTRAINTS
+MODEL_ACCEPTABLE_SENTIMENTS = ["Negative", "Positive", "Neutral"]
+
 # Classes
 class Sentiment140ItemList(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -94,6 +102,8 @@ class Sentiment140DetailList(APIView):
 
 class Sentiment140ModelList(APIView):
     """Returns items from the Sentiment 140 Model."""
+    client = OpenAI(api_key=API_KEY)
+
     def clean_text(self, text):
         """Clean a piece of text. Originally implemented by TechwiseCapstone_Sentiment_Analysis submodule."""
         text = re.sub(r"http\S+", "", text)
@@ -102,13 +112,14 @@ class Sentiment140ModelList(APIView):
 
     def get_prompt(self, query):
         """Get a prompt from ChatGPT."""
-        client = OpenAI(api_key=API_KEY)
-        response = client.responses.create(
+        response = self.client.responses.create(
             model=GPT_MODEL,
-            input=query
+            instructions=MODEL_INSTRUCTIONS,
+            input=query,
         )
+        output = response.output_text
 
-        return response
+        return output
 
     def post(self, request, format=None) -> Response:
         """POST a prompt into the model and process its response."""
@@ -140,7 +151,27 @@ class Sentiment140ModelList(APIView):
                 'code': 200
             }"""
 
-            model_response = self.get_prompt(model_query)
+            # Creates the response.
+            model_full_message = self.get_prompt(model_query)
+
+            # Gets the sentiment and its certainty, which should just be the first two words.
+            model_sentiment, model_certainty, model_message = model_full_message.split(maxsplit=2)
+
+            # Validates sentiment manually, probably better way to do this due to uncertainty, but will work for now.
+            if model_sentiment not in MODEL_ACCEPTABLE_SENTIMENTS:
+                model_sentiment = "Other"
+            # Validates certainty manually, turning it into an int and removing specified signs.
+            try:
+                model_certainty = int(model_certainty.replace('%', '').replace(".",''))
+            except ValueError:
+                model_certainty = None
+
+            model_response = {
+                'full_message': model_full_message,
+                'message': model_message,
+                'sentiment': model_sentiment,
+                'certainty': model_certainty,
+            }
             return Response(model_response)
         # Otherwise return a 400 error.
         else:
