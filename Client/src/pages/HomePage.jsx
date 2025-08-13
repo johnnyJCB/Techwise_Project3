@@ -8,14 +8,6 @@ function Home() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [error, setError] = useState(null);
 
-    const mapResultToVibe = (mlResult) => {
-        const mapping = {
-            0: { label: 'Unprofessional', color: 'negative' },
-            1: { label: 'Somewhat Professional', color: 'neutral' },
-            2: { label: 'Highly Professional', color: 'positive' }
-        };
-        return mapping[mlResult] || { label: 'Unknown', color: 'neutral' };
-    };
 
     const analyzeVibe = async () => {
         if (!message.trim()) return;
@@ -27,19 +19,23 @@ function Home() {
             const response = await axios.post('http://localhost:8000/api/v1.0/sentiment_model/', {
                 query: message
             });
+               
+            const { sentiment, certainty, message: analysisMessage, full_message } = response.data;
             
-            if (response.data.error) {
-                throw new Error(response.data.message);
-            }
-            
-            const vibeInfo = mapResultToVibe(response.data.data);
+            const sentimentColorMap = {
+                'Positive': 'positive',
+                'Negative': 'negative', 
+                'Neutral': 'neutral',
+                'Other': 'neutral'
+            };
             
             setVibeResult({
-                vibe: vibeInfo.label,
-                color: vibeInfo.color,
-                confidence: 85, // Default confidence since API doesn't provide it
-                analysis: response.data.message,
-                rawData: response.data.data
+                vibe: sentiment,
+                color: sentimentColorMap[sentiment] || 'neutral',
+                confidence: certainty || 0,
+                analysis: analysisMessage,
+                fullMessage: full_message,
+                rawData: response.data
             });
         } catch (err) {
             console.error('API Error:', err);
@@ -47,15 +43,6 @@ function Home() {
         } finally {
             setIsAnalyzing(false);
         }
-    };
-
-    const getAnalysisText = (vibe) => {
-        const analyses = {
-            'Highly Professional': 'Your message conveys professionalism and clarity. Perfect for business communications!',
-            'Somewhat Professional': 'Your message maintains a balanced tone. Consider refining for more formal contexts.',
-            'Unprofessional': 'Your message may benefit from more professional language and tone.'
-        };
-        return analyses[vibe] || 'Analysis complete.';
     };
 
     return (

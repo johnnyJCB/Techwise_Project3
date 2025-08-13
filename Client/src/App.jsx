@@ -77,16 +77,6 @@ function AppContent() {
 
   const [message, setMessage] = useState("");
 
-  // useEffect(() => {
-  //   axios
-  //   .get("http://127.0.0.1:8000/health/")
-  //     .then((response) => {
-  //       setMessage(response.data.message);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Axios error:", error);
-  //     });
-  // }, []);
 
   const getAvatarInitials = () => {
     if (user && user.name) {
@@ -161,7 +151,6 @@ function AppContent() {
             <Route path='/register' element={<Register onLogin={handleLogin} />} />
           </Routes>
         </div>
-        <div className="server-status">{message ? message : "Loading..."}</div>
       </div>
   );
 }
