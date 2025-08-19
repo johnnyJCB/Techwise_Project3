@@ -1,7 +1,6 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
-from .models import Sentiment140Item
+from django.contrib.auth.admin import UserAdmin
+from .models import Sentiment140Item, RegisteredUser
 
 # Register your custom models
 @admin.register(Sentiment140Item)
@@ -17,11 +16,14 @@ class Sentiment140ItemAdmin(admin.ModelAdmin):
             return ['date']
         return ['date']
 
-# Customize User admin (optional)
+# Morgan's code, gonna comment it out for now to handle some stuff first.
+"""# Customize User admin (optional)
 class CustomUserAdmin(BaseUserAdmin):
     # Add any custom fields or behavior here
     list_display = BaseUserAdmin.list_display + ('date_joined',)
     
 # Unregister the default User admin and register the custom one
 admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)
+admin.site.register(User, CustomUserAdmin)"""
+
+admin.site.register(RegisteredUser, UserAdmin)

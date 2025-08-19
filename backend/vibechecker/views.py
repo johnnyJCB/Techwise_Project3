@@ -1,7 +1,8 @@
 # Imports
 # -Django and REST Framework Imports-
 from django.http import Http404
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, viewsets, generics
@@ -16,6 +17,9 @@ from pathlib import Path
 from openai import OpenAI
 from .local_settings import API_KEY, GPT_MODEL
 import re
+
+# Init
+User = get_user_model()
 
 # Constants
 READ_DIRECTORY = Path("./TechwiseCapstone_Sentiment_Analysis").resolve()
@@ -183,14 +187,14 @@ class Sentiment140ModelList(APIView):
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
 class UserViewSet(viewsets.ModelViewSet):
-    """ API endpoint for managing users."""
+    """API endpoint for managing users."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class GroupViewSet(viewsets.ModelViewSet):
-    """ API endpoint for managing user groups."""
+    """API endpoint for managing user groups."""
     queryset = Group.objects.all().order_by('name')
     serializer_class = GroupSerializer
     permission_classes = [permissions.IsAuthenticated]

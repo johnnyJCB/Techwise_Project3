@@ -103,6 +103,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Sets the user authentication model.
+AUTH_USER_MODEL = 'vibechecker.RegisteredUser'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

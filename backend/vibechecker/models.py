@@ -1,8 +1,13 @@
 # Imports
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import AbstractUser
 
 # Classes
+class RegisteredUser(AbstractUser):
+    """A custom user model for Django. Used to add fields."""
+    test_field = models.CharField(max_length=10)
+
 class Sentiment140Item(models.Model):
     """
         Kaggle Dataset "Sentiment140 dataset with 1.6 million tweets": https://www.kaggle.com/datasets/kazanova/sentiment140?resource=download
@@ -49,4 +54,8 @@ class Sentiment140Item(models.Model):
 
     def __str__(self):
         return f'User "{self.user}" said "{self.text}" on {self.date}."'
+
+class SentimentResponseItem:
+    """Any response sent from a given model (ChatGPT, Sentiment140 Model, etc.)."""
+
     

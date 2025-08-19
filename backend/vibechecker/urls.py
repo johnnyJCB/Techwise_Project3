@@ -1,6 +1,5 @@
 # Imports
 from rest_framework.urlpatterns import format_suffix_patterns
-from rest_framework import routers
 from django.urls import path, include
 from vibechecker import views
 
