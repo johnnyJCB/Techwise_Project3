@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions, viewsets, generics
 
 # -App Imports-
-from vibechecker.models import Sentiment140Item
+from vibechecker.models import Sentiment140Item, SentimentResponseItem
 from vibechecker.serializers import Sentiment140ItemSerializer, UserSerializer, GroupSerializer
 from vibechecker.permissions import IsOwnerOrReadOnly
 
@@ -107,6 +107,7 @@ class Sentiment140DetailList(APIView):
 class Sentiment140ModelList(APIView):
     """Returns items from the Sentiment 140 Model."""
     client = OpenAI(api_key=API_KEY)
+    permission_classes = [permissions.IsAuthenticated]
 
     def clean_text(self, text):
         """Clean a piece of text. Originally implemented by TechwiseCapstone_Sentiment_Analysis submodule."""
@@ -124,6 +125,11 @@ class Sentiment140ModelList(APIView):
         output = response.output_text
 
         return output
+
+    def add_to_user(self, user, query, message, sentiment, certainty):
+        if user.is_authenticated:
+            item = SentimentResponseItem(user=user, query=query, message=message, sentiment=sentiment, certainty=certainty)
+            item.save()
 
     def post(self, request, format=None) -> Response:
         """POST a prompt into the model and process its response."""
@@ -176,6 +182,8 @@ class Sentiment140ModelList(APIView):
                 'sentiment': model_sentiment,
                 'certainty': model_certainty,
             }
+
+            self.add_to_user(request.user, model_query, model_message, model_sentiment, model_certainty)
             return Response(model_response)
         # Otherwise return a 400 error.
         else:

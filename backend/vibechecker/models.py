@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser
 # Classes
 class RegisteredUser(AbstractUser):
     """A custom user model for Django. Used to add fields."""
-    test_field = models.CharField(max_length=10)
+    pass
 
 class Sentiment140Item(models.Model):
     """
@@ -55,7 +55,17 @@ class Sentiment140Item(models.Model):
     def __str__(self):
         return f'User "{self.user}" said "{self.text}" on {self.date}."'
 
-class SentimentResponseItem:
+class SentimentResponseItem(models.Model):
     """Any response sent from a given model (ChatGPT, Sentiment140 Model, etc.)."""
+    # Foreign Keys
+    user = models.ForeignKey(RegisteredUser, related_name="response", on_delete=models.CASCADE)
+
+    # Members
+    query = models.TextField()
+    message = models.TextField()
+    sentiment = models.CharField(max_length=15)
+    certainty = models.IntegerField()
+
+
 
     

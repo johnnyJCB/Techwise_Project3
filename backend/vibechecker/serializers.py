@@ -1,7 +1,7 @@
 # Imports
 # -Django and REST Framework Imports-
 from rest_framework import serializers
-from vibechecker.models import Sentiment140Item
+from vibechecker.models import Sentiment140Item, SentimentResponseItem
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -17,10 +17,18 @@ class Sentiment140ItemSerializer(serializers.ModelSerializer):
         model = Sentiment140Item
         fields = ["target", "tweet_id", "date", "flag", "user", "text"]
 
+class SentimentResponseItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SentimentResponseItem
+        fields = ["query", "message", "sentiment", "certainty"]
+
 class UserSerializer(serializers.ModelSerializer):
+    # Creates a string related field to initialize in json.
+    response = SentimentResponseItemSerializer(many=True)
+
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups', 'test_field']
+        fields = ['url', 'username', 'email', 'groups', 'response']
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
