@@ -23,10 +23,11 @@ from vibechecker import views
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
+router.register(r'sentiment', views.SentimentResponseViewSet)
 
 # URL Patterns
 urlpatterns = [
-    path("api/v1.0/auth/", include('rest_framework.urls', namespace='rest_framework')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('admin/', admin.site.urls),
     path('', include('vibechecker.urls')),
     path('', include(router.urls)),

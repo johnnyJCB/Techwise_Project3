@@ -5,15 +5,15 @@ from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework import status, permissions, viewsets, generics
 
 # -App Imports-
 from vibechecker.models import Sentiment140Item, SentimentResponseItem
-from vibechecker.serializers import Sentiment140ItemSerializer, UserSerializer, GroupSerializer
-from vibechecker.permissions import IsOwnerOrReadOnly
+from vibechecker.serializers import Sentiment140ItemSerializer, SentimentResponseItemSerializer, UserSerializer, GroupSerializer
+from vibechecker.permissions import IsStaffOrOwnerOrReadOnly, IsStaffForPOST
 
 # -Normal Imports-
-from pathlib import Path
 from openai import OpenAI
 from .local_settings import API_KEY, GPT_MODEL
 import re
@@ -22,14 +22,6 @@ import re
 User = get_user_model()
 
 # Constants
-READ_DIRECTORY = Path("./TechwiseCapstone_Sentiment_Analysis").resolve()
-MODEL_FILE = READ_DIRECTORY / "model.pkl"
-VECTORIZER_FILE = READ_DIRECTORY / "vectorizer.pkl"
-LABELS = {
-    0: "Not professional enough",
-    1: "Somewhat professional",
-    2: "Highly professional"
-}
 QUERY_KEY = "query"
 
 # -Constants for modeling-
@@ -67,7 +59,7 @@ class Sentiment140ItemList(APIView):
         serializer.save(owner=self.request.user)
 
 class Sentiment140DetailList(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     """Returns an individual item from the Sentiment 140 database; updates the item; or deletes the entry entirely."""
     def get_object(self, id) -> Sentiment140Item:
         """Obtains a single item from the dataset, otherwise raises an Http404 error."""
@@ -133,34 +125,10 @@ class Sentiment140ModelList(APIView):
 
     def post(self, request, format=None) -> Response:
         """POST a prompt into the model and process its response."""
-        # If the model or vectorizer is not present, return a 500 error.
-        if not MODEL_FILE.is_file() and not VECTORIZER_FILE.is_file():
-            error_response = {
-                'message': "Submodule/Read Directory does not exist! Please ensure you have done 'git clone <repo> --recursive' or specified a valid read directory.",
-                'error': True,
-                'code': 500
-            }
-            return Response(error_response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         model_query = request.data.get(QUERY_KEY, "")
 
         # If Query is not invalid.
         if model_query:
-            """model = joblib.load(MODEL_FILE)
-            vectorizer = joblib.load(VECTORIZER_FILE)
-
-            # Predicts a score from the model query.
-            cleaned = self.clean_text(model_query)
-            vect = vectorizer.transform([cleaned])
-            pred = model.predict(vect)[0]
-
-            # Forms the model response from the predicted score.
-            model_response = {
-                'message': f'{LABELS[pred]}', 
-                'data': pred,
-                'error': False, 
-                'code': 200
-            }"""
-
             # Creates the response.
             model_full_message = self.get_prompt(model_query)
 
@@ -194,12 +162,17 @@ class Sentiment140ModelList(APIView):
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
+class SentimentResponseViewSet(viewsets.ReadOnlyModelViewSet):
+    """A response item from a model, tied to a user."""
+    queryset = SentimentResponseItem.objects.all()
+    serializer_class = SentimentResponseItemSerializer
+    permission_classes = [IsStaffOrOwnerOrReadOnly]
+
 class UserViewSet(viewsets.ModelViewSet):
     """API endpoint for managing users."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsStaffOrOwnerOrReadOnly, IsStaffForPOST]
 
 class GroupViewSet(viewsets.ModelViewSet):
     """API endpoint for managing user groups."""
