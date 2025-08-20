@@ -24,11 +24,11 @@ class SentimentResponseItemSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     # Creates a string related field to initialize in json.
-    response = SentimentResponseItemSerializer(many=True)
+    responses = SentimentResponseItemSerializer(many=True)
 
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups', 'response']
+        fields = ['url', 'username', 'email', 'groups', 'responses']
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:

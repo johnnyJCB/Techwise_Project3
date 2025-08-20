@@ -58,7 +58,7 @@ class Sentiment140Item(models.Model):
 class SentimentResponseItem(models.Model):
     """Any response sent from a given model (ChatGPT, Sentiment140 Model, etc.)."""
     # Foreign Keys
-    user = models.ForeignKey(RegisteredUser, related_name="response", on_delete=models.CASCADE)
+    user = models.ForeignKey(RegisteredUser, related_name="responses", on_delete=models.CASCADE)
 
     # Members
     query = models.TextField()
