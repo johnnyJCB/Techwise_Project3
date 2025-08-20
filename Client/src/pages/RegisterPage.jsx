@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import '../App.css'
+import authService from '../services/authService'
 
 function Register({ onLogin }) {
     const [formData, setFormData] = useState({
-        name: '',
+        username: '',
         email: '',
         password: '',
         confirmPassword: ''
@@ -16,10 +17,10 @@ function Register({ onLogin }) {
     const validateForm = () => {
         const newErrors = {};
         
-        if (!formData.name) {
-            newErrors.name = 'Name is required';
-        } else if (formData.name.length < 2) {
-            newErrors.name = 'Name must be at least 2 characters';
+        if (!formData.username) {
+            newErrors.username = 'Username is required';
+        } else if (formData.username.length < 3) {
+            newErrors.username = 'Username must be at least 3 characters';
         }
         
         if (!formData.email) {
@@ -30,8 +31,8 @@ function Register({ onLogin }) {
         
         if (!formData.password) {
             newErrors.password = 'Password is required';
-        } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
+        } else if (formData.password.length < 8) {
+            newErrors.password = 'Password must be at least 8 characters';
         }
         
         if (!formData.confirmPassword) {
@@ -68,34 +69,33 @@ function Register({ onLogin }) {
         setGeneralError('');
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // For demo purposes, automatically create account
-            const userData = {
-                id: Math.floor(Math.random() * 1000) + 1,
-                name: formData.name,
-                email: formData.email,
-                joinDate: new Date().toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long' 
-                }),
-                totalConversations: 0, // New user starts with 0
-                Vibes: ["Positive", "Neutral", "Negative"]
-            };
-
-            // Store in localStorage
-            localStorage.setItem('user', JSON.stringify(userData));
-            localStorage.setItem('isLoggedIn', 'true');
-            
-            // Auto-login after registration
-            if (onLogin) {
-                onLogin(userData);
+            // Check if user is logged in and is staff
+            if (!authService.isAuthenticated() || !authService.getCurrentUser()?.is_staff) {
+                throw new Error('Only staff users can create new accounts. Please contact an administrator.');
             }
+
+            // Use authService to register new user
+            const newUser = await authService.register({
+                username: formData.username,
+                email: formData.email,
+                password: formData.password
+            });
+            
+            // Show success message instead of auto-login
+            setGeneralError('');
+            alert(`Account created successfully for ${newUser.username}!`);
+            
+            // Reset form
+            setFormData({
+                username: '',
+                email: '',
+                password: '',
+                confirmPassword: ''
+            });
             
         } catch (error) {
             console.error('Registration error:', error);
-            setGeneralError('Registration failed. Please try again.');
+            setGeneralError(error.message || 'Registration failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -105,8 +105,8 @@ function Register({ onLogin }) {
         <div className="auth-container">
             <div className="auth-card">
                 <div className="auth-header">
-                    <h1>Join VibeChecker</h1>
-                    <p>Create your account to start analyzing vibes</p>
+                    <h1>Create New Account</h1>
+                    <p>Staff users only - Create new user accounts</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="auth-form">
@@ -118,17 +118,18 @@ function Register({ onLogin }) {
                     )}
 
                     <div className="form-group">
-                        <label htmlFor="name">Full Name</label>
+                        <label htmlFor="username">Username</label>
                         <input
                             type="text"
-                            id="name"
-                            name="name"
-                            value={formData.name}
+                            id="username"
+                            name="username"
+                            value={formData.username}
                             onChange={handleChange}
-                            className={errors.name ? 'error' : ''}
+                            className={errors.username ? 'error' : ''}
                             disabled={isLoading}
+                            placeholder="Enter username (3+ characters)"
                         />
-                        {errors.name && <span className="field-error">{errors.name}</span>}
+                        {errors.username && <span className="field-error">{errors.username}</span>}
                     </div>
 
                     <div className="form-group">
@@ -155,6 +156,7 @@ function Register({ onLogin }) {
                             onChange={handleChange}
                             className={errors.password ? 'error' : ''}
                             disabled={isLoading}
+                            placeholder="8+ characters required"
                         />
                         {errors.password && <span className="field-error">{errors.password}</span>}
                     </div>

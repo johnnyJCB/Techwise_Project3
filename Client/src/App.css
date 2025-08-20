@@ -395,6 +395,14 @@
   font-weight: 400;
 }
 
+.profile-info .staff-badge {
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
+  color: #ffd700;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
 /* Stats Section */
 .account-stats {
   display: grid;
@@ -414,6 +422,13 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+}
+
+.account-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  padding: 3rem;
 }
 
 .stat-card::before {
@@ -578,6 +593,34 @@
   line-height: 1.7;
   font-size: 1.1rem;
   font-weight: 400;
+}
+
+.conversation-analysis {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  font-size: 1rem;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.certainty-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.no-conversations {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  font-style: italic;
+}
 }
 
 .conversation-footer {

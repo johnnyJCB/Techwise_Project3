@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import '../App.css'
+import authService from '../services/authService'
 
 function Login({ onLogin }) {
     const [formData, setFormData] = useState({
-        email: '',
+        username: '',
         password: ''
     });
     const [errors, setErrors] = useState({});
@@ -14,16 +15,12 @@ function Login({ onLogin }) {
     const validateForm = () => {
         const newErrors = {};
         
-        if (!formData.email) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Email is invalid';
+        if (!formData.username) {
+            newErrors.username = 'Username is required';
         }
         
         if (!formData.password) {
             newErrors.password = 'Password is required';
-        } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
         }
         
         return newErrors;
@@ -54,25 +51,8 @@ function Login({ onLogin }) {
         setGeneralError('');
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // For demo purposes, accept any valid email/password
-            const userData = {
-                id: 1,
-                name: formData.email.split('@')[0].charAt(0).toUpperCase() + formData.email.split('@')[0].slice(1),
-                email: formData.email,
-                joinDate: new Date().toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long' 
-                }),
-                totalConversations: 12, // Demo data
-                Vibes: ["Positive", "Neutral", "Negative"]
-            };
-
-            // Store in localStorage
-            localStorage.setItem('user', JSON.stringify(userData));
-            localStorage.setItem('isLoggedIn', 'true');
+            // Use authService to login with backend
+            const userData = await authService.login(formData.username, formData.password);
             
             // Call parent login handler
             if (onLogin) {
@@ -81,7 +61,7 @@ function Login({ onLogin }) {
             
         } catch (error) {
             console.error('Login error:', error);
-            setGeneralError('Login failed. Please try again.');
+            setGeneralError(error.message || 'Login failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -104,17 +84,18 @@ function Login({ onLogin }) {
                     )}
 
                     <div className="form-group">
-                        <label htmlFor="email">Email</label>
+                        <label htmlFor="username">Username</label>
                         <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formData.email}
+                            type="text"
+                            id="username"
+                            name="username"
+                            value={formData.username}
                             onChange={handleChange}
-                            className={errors.email ? 'error' : ''}
+                            className={errors.username ? 'error' : ''}
                             disabled={isLoading}
+                            placeholder="Enter your username"
                         />
-                        {errors.email && <span className="field-error">{errors.email}</span>}
+                        {errors.username && <span className="field-error">{errors.username}</span>}
                     </div>
 
                     <div className="form-group">

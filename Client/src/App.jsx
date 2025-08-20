@@ -9,7 +9,7 @@ import Register from './pages/RegisterPage';
 import Aurora from './components/Aurora'
 import { Avatar } from '@mui/material';
 import FlowingMenu from './components/FlowingMenu'
-import axios from "axios";
+import authService from './services/authService';
 
 function AppContent() {
   const items = [
@@ -20,9 +20,25 @@ function AppContent() {
   const path = window.location.pathname;
   const initialActiveIndex = items.findIndex(item => item.href === path);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
+  const [isLoggedIn, setIsLoggedIn] = useState(authService.isAuthenticated());
+  const [user, setUser] = useState(authService.getCurrentUser());
   const navigate = useNavigate();
+  
+  // Listen for authentication changes
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      setIsLoggedIn(authService.isAuthenticated());
+      setUser(authService.getCurrentUser());
+    };
+    
+    // Check auth status on mount
+    checkAuthStatus();
+    
+    // Set up periodic check for auth status changes
+    const interval = setInterval(checkAuthStatus, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -30,12 +46,19 @@ function AppContent() {
     navigate('/');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('isLoggedIn');
-    setUser(null);
-    setIsLoggedIn(false);
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      setUser(null);
+      setIsLoggedIn(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still clear local state even if backend logout fails
+      setUser(null);
+      setIsLoggedIn(false);
+      navigate('/');
+    }
   };
 
   const handleMenuClose = () => {
@@ -79,15 +102,13 @@ function AppContent() {
 
 
   const getAvatarInitials = () => {
-    if (user && user.name) {
-      return user.name.split(' ').map(n => n[0]).join('').toUpperCase();
-    }
-    return 'G';
-  };
-
-  const getAvatarInitials = () => {
-    if (user && user.name) {
-      return user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    if (user) {
+      // Try different name fields from Django user model
+      const name = user.username || user.first_name || user.email?.split('@')[0] || 'User';
+      if (user.first_name && user.last_name) {
+        return (user.first_name[0] + user.last_name[0]).toUpperCase();
+      }
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
     return 'G';
   };
