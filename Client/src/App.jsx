@@ -10,11 +10,16 @@ import Aurora from './components/Aurora'
 import { Avatar } from '@mui/material';
 import FlowingMenu from './components/FlowingMenu'
 import authService from './services/authService';
+import KeywordInsightsPage from './pages/KeywordInsightsPage';
+import ReadabilityScorePage from './pages/ReadabilityScorePage';
+
 
 function AppContent() {
   const items = [
     { label: "Home", href: '/' },
     { label: "About", href: '/about' },
+    { label: "Keyword Insights", href: '/keyword-insights' },
+    { label: "Readability Score", href: '/readability-score' },
   ];
   
   const path = window.location.pathname;
@@ -163,6 +168,8 @@ function AppContent() {
                 element={
                   item.href === '/' ? <Home /> :
                   item.href === '/about' ? <About /> :
+                  item.href === '/keyword-insights' ? <KeywordInsightsPage /> :
+                  item.href === '/readability-score' ? <ReadabilityScorePage /> :
                   null
                 }
               />
