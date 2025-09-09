@@ -1,12 +1,14 @@
 # Imports
 # -Django and REST Framework Imports-
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import status, permissions, viewsets, generics
+import json
+import re
 
 # -App Imports-
 from vibechecker.models import Sentiment140Item, SentimentResponseItem
@@ -179,3 +181,63 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all().order_by('name')
     serializer_class = GroupSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+def flesch_kincaid(text):
+    # This is a basic syllable counter, you might want to use a more robust library
+    # like 'syllables' if you need a more accurate result.
+    def count_syllables_simple(word):
+        word = word.lower()
+        if not word:
+            return 0
+        count = len(re.findall(r'[aeiouy]+', word))
+        if word.endswith('e'):
+            count -= 1
+        if count == 0:
+            count += 1
+        return count
+
+    sentences = [s for s in re.split(r'[.!?]+', text) if s.strip()]
+    if not sentences: 
+        return 0
+    sentences_count = len(sentences)
+
+    words = len(re.findall(r'\b\w+\b', text.lower()))
+    if words == 0:
+        return 0
+    
+    syllables = sum(count_syllables_simple(word) for word in re.findall(r'\b\w+\b', text.lower()))
+
+    # FleschKincaid formula
+    score = 206.835 - 1.015 * (words / sentences_count) - 84.6 * (syllables / words)
+    return round(score)
+
+def get_reading_level(score):
+    if score >= 90:
+        return "Very easy (Middle School level)"
+    if score >= 60:
+        return "Plain English (High School level)"
+    if score >= 0:
+        return "College graduate level"
+    return "Extremely difficult/academic"
+    
+class ReadabilityScoreView(APIView):
+    """
+    Calculates the Flesch-Kincaid readability score of a given text.
+    """
+    def post(self, request, format=None):
+        try:
+            
+            text = request.data.get('text', '')
+            
+            if not text:
+                return Response({'error': 'No text provided'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            score = flesch_kincaid(text)
+            level = get_reading_level(score)
+            
+            return Response({'score': score, 'level': level}, status=status.HTTP_200_OK)
+            
+        except json.JSONDecodeError:
+            return Response({'error': 'Invalid JSON'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
