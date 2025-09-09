@@ -183,8 +183,6 @@ class GroupViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
 def flesch_kincaid(text):
-    # This is a basic syllable counter, you might want to use a more robust library
-    # like 'syllables' if you need a more accurate result.
     def count_syllables_simple(word):
         word = word.lower()
         if not word:
