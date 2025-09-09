@@ -7,8 +7,8 @@ from vibechecker import views
 urlpatterns = [
     path("api/v1.0/sentiment_140/", views.Sentiment140ItemList.as_view()),
     path("api/v1.0/sentiment_140/<int:id>/", views.Sentiment140DetailList.as_view()),
-    path("api/v1.0/sentiment_140/<int:id>/", views.Sentiment140DetailList.as_view()),
     path("api/v1.0/sentiment_model/", views.Sentiment140ModelList.as_view()),
+    path("readability-score/", views.ReadabilityScoreView.as_view(), name="readability-score"),
 ]
 
 # Allows the user to change format (.json) within views.py
