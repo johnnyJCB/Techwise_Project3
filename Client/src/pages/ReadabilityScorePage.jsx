@@ -1,32 +1,36 @@
 import React, { useState } from 'react';
 
-function fleschKincaid(text) {
-  const sentences = text.split(/[.!?]+/).filter(Boolean).length;
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const syllables = text.toLowerCase().split(/\s+/).reduce((count, word) => {
-    const wordSyllables = word.match(/[aeiouy]+/g)?.length || 0;
-    return count + wordSyllables;
-  }, 0);
-  if (sentences === 0 || words === 0) return 0;
-  return Math.round(
-    206.835 - 1.015 * (words / sentences) - 84.6 * (syllables / words)
-  );
-}
-
-function getReadingLevel(score) {
-  if(score >= 90) return "Very easy (Middle School level)";
-  if(score >= 60) return "Plain English (High School level)";
-  if(score >= 0) return "College graduate level";
-  return "Extremely difficult/academic";
-}
-
 function ReadabilityScorePage() {
   const [text, setText] = useState('');
   const [score, setScore] = useState(null);
+  const [level, setLevel] = useState(null);
 
   const analyzeText = () => {
-    const readabilityScore = fleschKincaid(text);
-    setScore(readabilityScore);
+
+    const apiUrl = 'http://127.0.0.1:8000/readability-score/';
+
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text: text }),
+    })
+    .then(response => {
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      setScore(data.score);
+      setLevel(data.level);
+    })
+    .catch(error => {
+
+      console.error('There was a problem with the fetch operation:', error);
+    });
   };
 
   return (
@@ -45,7 +49,7 @@ function ReadabilityScorePage() {
       {score !== null && (
         <div style={{ marginTop: '20px' }}>
           <strong>Score:</strong> {score} <br />
-          <strong>Level:</strong> {getReadingLevel(score)}
+          <strong>Level:</strong> {level}
           <p>Higher scores mean easier reading.</p>
         </div>
       )}
